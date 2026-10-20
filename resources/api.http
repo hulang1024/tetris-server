@@ -1,0 +1,15 @@
+POST http://localhost:8080/guest/login
+Content-Type: application/json
+
+{"user-id": null}
+
+###
+
+GET http://localhost:8080/hello
+
+###
+
+POST http://localhost:8080/hello
+Content-Type: application/json
+
+{"name": "test"}
