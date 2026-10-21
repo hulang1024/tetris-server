@@ -1,6 +1,9 @@
 (ns tetris-server.routes
   (:require [cheshire.core :as json]
+            [malli.core :as m]
+            [malli.error :as me]
             [io.pedestal.http.route.definition.table :as table]
+            [io.pedestal.interceptor :as interceptor]
             [tetris-server.user-repo :as user-repo]))
 
 (defn api-response
@@ -30,8 +33,31 @@
                          :token (generate-api-token user)})
       (api-response :failed))))
 
+(def Username [:string {:min 3}])
+(def Password [:string {:min 6}])
+
+(def RegisterRequest
+  [:map
+   [:username Username]
+   [:password Password]])
+
+(def LoginRequest
+  [:map
+   [:username Username]
+   [:password Password]])
+
+(defn validate-body [schema]
+  (interceptor/interceptor
+    {:name ::validate-body
+     :enter (fn [ctx]
+              (let [body (get-in ctx [:request :json-params])
+                    err  (m/explain schema body)]
+                (if err
+                  (assoc ctx :response
+                         (api-response :error {:errors (me/humanize err)}))
+                  ctx)))}))
 (defn routes
   []
   (table/table-routes
-    [["/api/register" :post [register]]
-     ["/api/login" :post [login]]]))
+    [["/api/register" :post [(validate-body RegisterRequest) register]]
+     ["/api/login" :post [(validate-body LoginRequest) login]]]))
