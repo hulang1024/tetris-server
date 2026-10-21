@@ -1,4 +1,4 @@
-(ns tetris.tetris-server.db
+(ns tetris-server.db
   (:require [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]
             [next.jdbc.connection :as conn]))

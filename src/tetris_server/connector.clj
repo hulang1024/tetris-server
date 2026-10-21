@@ -1,13 +1,13 @@
-(ns tetris.tetris-server.connector
-  "Defines the connector configuration for the tetris/tetris-server project."
+(ns tetris-server.connector
+  "Defines the connector configuration for the tetris-server project."
   (:require [io.pedestal.connector :as connector]
             [io.pedestal.service.resources :as resources]
             [io.pedestal.environment :as env]
             [io.pedestal.connector.dev :as dev]
-            [tetris.tetris-server.routes :as routes]))
+            [tetris-server.routes :as routes]))
 
 (defn connector-map
-  "Creates a connector map for the tetris/tetris-server service.
+  "Creates a connector map for the tetris-server service.
 
   Options:
   - dev-mode: enables dev-interceptors and interceptor logging if true, defaults from

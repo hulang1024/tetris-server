@@ -1,10 +1,10 @@
-# tetris/tetris-server
+# tetris-server
 
 ## Usage
 
 Invoke a library API function from the command-line:
 
-    $ clojure -X tetris.tetris-server/foo :a 1 :b '"two"'
+    $ clojure -X tetris-server/foo :a 1 :b '"two"'
     {:a 1, :b "two"} "Hello, World!"
 
 Run the project's tests:
@@ -27,5 +27,3 @@ Deploy it to Clojars -- needs `CLOJARS_USERNAME` and `CLOJARS_PASSWORD` environm
 variables (requires the `ci` task be run first):
 
     $ clojure -T:build deploy
-
-Your library will be deployed to net.clojars.tetris/tetris-server on clojars.org by default.

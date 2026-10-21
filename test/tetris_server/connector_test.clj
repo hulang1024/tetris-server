@@ -1,11 +1,11 @@
-(ns tetris.tetris-server.connector-test
+(ns tetris-server.connector-test
   (:require [clojure.test :refer [deftest is use-fixtures]]
             [charred.api :as json]
             [matcher-combinators.matchers :as m]
             [io.pedestal.connector :as connector]
             [io.pedestal.http.http-kit :as hk]
             [io.pedestal.connector.test :as test :refer [response-for]]
-            [tetris.tetris-server.connector :refer [connector-map]]))
+            [tetris-server.connector :refer [connector-map]]))
 
 (def ^:dynamic *connector* nil)
 
@@ -28,7 +28,7 @@
 
 (deftest can-access-public-resources
   (is (match? {:status 200
-               :body (m/regex #"\Q<strong>tetris/tetris-server</strong> is up and running.\E")}
+               :body (m/regex #"\Q<strong>tetris-server</strong> is up and running.\E")}
               (response-for *connector* :get "/index.html"))))
 
 (deftest can-access-greet

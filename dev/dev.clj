@@ -1,8 +1,8 @@
 (ns dev
   (:require [io.pedestal.connector :as conn]
             [io.pedestal.http.http-kit :as hk]
-            [tetris.tetris-server.connector :refer [connector-map]]
-            [tetris.tetris-server.db :as db]))
+            [tetris-server.connector :refer [connector-map]]
+            [tetris-server.db :as db]))
 
 (defonce connector nil)
 

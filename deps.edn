@@ -23,14 +23,14 @@
   {:jvm-opts ["-Dio.pedestal.dev-mode=true"]}
 
   :run
-  {:exec-fn  tetris.tetris-server.main/start-service}
+  {:exec-fn  tetris-server.main/start-service}
 
   :otel-agent
   {:jvm-opts ["-Dotel.exporter.oltp.endpoint=http://localhost:4317"
-              "-Dotel.resource.attributes=service.name=tetris/tetris-server"
+              "-Dotel.resource.attributes=service.name=tetris-server"
               ;; Jaeger is only traces, not metrics, so turn those off.
               "-Dotel.metrics.exporter=none"
-              "-Dio.pedestal.telemetry.tracing-source=tetris.tetris-server.telemetry-init/tracing-source"
+              "-Dio.pedestal.telemetry.tracing-source=tetris-server.telemetry-init/tracing-source"
               ;; Must download this from:
               ;; https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar
               "-javaagent:target/opentelemetry-javaagent.jar"]}

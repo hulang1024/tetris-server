@@ -10,7 +10,7 @@
         <appender-ref ref="STDOUT"/>
     </root>
 
-    <logger name="tetris.tetris-server" level="info"/>
+    <logger name="tetris-server" level="info"/>
     <logger name="io.pedestal" level="info"/>
     <logger name="io.pedestal.interceptor.chain.debug" level="debug"/>
     <logger name="com.zaxxer.hikari" level="info" />

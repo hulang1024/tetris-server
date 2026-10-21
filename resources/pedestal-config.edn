@@ -1,2 +1,2 @@
-{:io.pedestal.telemetry.metric-source tetris.tetris-server.telemetry-init/metric-source
- :io.pedestal.telemetry.tracing-source tetris.tetris-server.telemetry-init/tracing-source}
+{:io.pedestal.telemetry.metric-source tetris-server.telemetry-init/metric-source
+ :io.pedestal.telemetry.tracing-source tetris-server.telemetry-init/tracing-source}

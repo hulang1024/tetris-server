@@ -1,14 +1,14 @@
-(ns tetris.tetris-server.main
-  "Runs the tetris/tetris-server service."
+(ns tetris-server.main
+  "Runs the tetris-server service."
   (:require [io.pedestal.connector :as connector]
             [io.pedestal.http.http-kit :as hk]
             [io.pedestal.log :as log]
-            [tetris.tetris-server.connector :refer [connector-map]]
-            [tetris.tetris-server.db :as db]))
+            [tetris-server.connector :refer [connector-map]]
+            [tetris-server.db :as db]))
 
 (defn- log-startup
   [connector-map]
-  (log/info :msg "Service tetris/tetris-server startup"
+  (log/info :msg "Service tetris-server startup"
             :port (:port connector-map))
   connector-map)
 

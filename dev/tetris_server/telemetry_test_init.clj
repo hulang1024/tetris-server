@@ -1,4 +1,4 @@
-(ns tetris.tetris-server.telemetry-test-init)
+(ns tetris-server.telemetry-test-init)
 
 (defn metric-source
   []
