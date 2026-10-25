@@ -1,7 +1,6 @@
 (ns tetris-server.connector
   "Defines the connector configuration for the tetris-server project."
   (:require [io.pedestal.connector :as connector]
-            [io.pedestal.service.resources :as resources]
             [io.pedestal.environment :as env]
             [io.pedestal.connector.dev :as dev]
             [tetris-server.routes :as routes]))

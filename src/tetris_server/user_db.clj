@@ -1,4 +1,4 @@
-(ns tetris-server.user-repo 
+(ns tetris-server.user-db 
   (:require
     [next.jdbc.sql :as sql]
     [tetris-server.db :refer [ds]])
