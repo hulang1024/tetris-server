@@ -1,70 +1,15 @@
 (ns tetris-server.routes
-  (:require [cheshire.core :as json]
-            [io.pedestal.http.ring-middlewares :as middlewares]
+  (:require [io.pedestal.http.ring-middlewares :as middlewares]
             [io.pedestal.http.route.definition.table :as table]
             [io.pedestal.interceptor :refer [interceptor]]
             [malli.core :as m]
             [malli.error :as me]
             [ring.middleware.session.memory :as memory]
-            [tetris-server.user-db :as user-db]))
+            [tetris-server.api :refer [api-response]]
+            [tetris-server.handlers.room :as room]
+            [tetris-server.handlers.user :as user]))
 
-(def session-store (memory/memory-store))
-
-(defn api-response
-  ([code] (api-response code nil))
-  ([code data]
-   {:status 200
-    :headers {"Content-Type" "application/json"}
-    :body  (json/generate-string (cond-> {:code code}
-                                   data (assoc :data data)))}))
-
-(defn user-info [user]
-  (dissoc user :password))
-
-(defn get-user-info [m]
-  (dissoc (first (user-db/find-users m))
-          :password))
-
-(defn register [request]
-  (let [user (:json-params request)]
-    (if (seq (user-db/find-users (select-keys user [:username])))
-      (api-response :username-exists)
-      (let [user (assoc user :user-type 1)]
-        (user-db/save-user! user)
-        (api-response :ok)))))
-
-(defn login [request]
-  (let [{:keys [username password]} (:json-params request)
-        user (first (user-db/find-users {:username username}))
-        sid (or (:session/key request)
-                (str (java.util.UUID/randomUUID)))]
-    (if (and user (= (:password user) password))
-      (assoc (api-response :ok {:user (user-info user)
-                                :sid sid})
-             :session/key sid
-             :session {:uid (:id user)})
-      (api-response :failed))))
-
-(defn logout [_request]
-  (assoc (api-response :ok)
-         :session nil))
-
-(defn whoami [request]
-  (let [{:keys [uid]} (:session request)]
-    (api-response :ok (get-user-info {:id uid}))))
-
-(def Username [:string {:min 3}])
-(def Password [:string {:min 6}])
-
-(def RegisterRequest
-  [:map
-   [:username Username]
-   [:password Password]])
-
-(def LoginRequest
-  [:map
-   [:username Username]
-   [:password Password]])
+(defonce session-store (memory/memory-store))
 
 (defn validation-params [schema]
   (interceptor
@@ -98,11 +43,11 @@
                       (assoc-in [:request :session/key] sid))
                   ctx)))}))
 
-(def session-interceptor
+(defonce session-interceptor
   (middlewares/session {:store session-store}))
 
 (defn api-route [verb path handler params-schema & [opts]]
-  [(str "/api/" path)
+  [(str "/api" path)
    verb (cond-> []
           true (into [extract-session-id session-interceptor])
           (not= (:auth-required? opts) false)
@@ -115,7 +60,14 @@
 (defn routes
   []
   (table/table-routes
-    [(api-route :post "/register" register RegisterRequest {:auth-required? false})
-     (api-route :post "/login" login LoginRequest {:auth-required? false})
-     (api-route :post "/logout" logout nil)
-     (api-route :get "/whoami" whoami nil)]))
+    [(api-route :post "/register" user/register user/RegisterRequest {:auth-required? false})
+     (api-route :post "/login" user/login user/LoginRequest {:auth-required? false})
+     (api-route :post "/logout" user/logout nil)
+     (api-route :get "/whoami" user/whoami nil)
+
+     (api-route :post "/room/search-rooms" room/search-rooms room/SearchRoomRequest)
+     (api-route :post "/room/create-room" room/create-room room/CreateRoomRequest)
+     (api-route :post "/room/join-room" room/join-room nil)
+     (api-route :post "/room/leave-room" room/leave-room nil)
+     (api-route :post "/room/toggle-ready" room/toogle-ready nil)
+     (api-route :post "/room/start-game" room/start-game nil)]))

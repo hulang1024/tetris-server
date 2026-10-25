@@ -1,7 +1,11 @@
-(ns user
-  (:require [clj-commons.pretty.repl :as repl]
-            ; Add support for (is (match?)) and (is (thrown-match?)):
-            matcher-combinators.test))
+(ns user 
+  (:require
+    [clj-reload.core :refer [reload]]
+    [clj-commons.pretty.repl :as repl]
+    [tetris-server.main :refer [start-service]]))
 
-;; Setup clj-commons/pretty to report exceptions.
+(println "Dev mode started.")
+
 (repl/install-pretty-exceptions)
+
+(start-service)
