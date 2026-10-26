@@ -16,28 +16,34 @@
    [:username Username]
    [:password Password]])
 
-(defn user-info [user]
+(defn safe-user-info [user]
   (dissoc user :password))
 
-(defn get-user-info [m]
-  (user-info (first (user-db/find-users m))))
+(defn get-user-info [ds m]
+  (safe-user-info (user-db/get-user ds m)))
 
-(defn register [request]
-  (let [user (:json-params request)]
-    (if (seq (user-db/find-users (select-keys user [:username])))
+(defn- authenticate [ds username password]
+  (when-let [user (user-db/get-user ds {:username username})]
+    (when (= (:password user) password)
+      user)))
+
+(defn register [{:keys [datasource json-params]}]
+  (let [{:keys [username password]} json-params]
+    (if (user-db/get-user datasource {:username username})
       (api-response :username-exists)
-      (let [user (assoc user :user-type 1)]
-        (user-db/save-user! user)
-        (api-response :ok)))))
+      (do (user-db/save-user! datasource
+                              {:username  username
+                               :password  password
+                               :user-type 1})
+          (api-response :ok)))))
 
-(defn login [request]
-  (let [{:keys [username password]} (:json-params request)
-        user (first (user-db/find-users {:username username}))
-        sid (or (:session/key request)
-                (str (java.util.UUID/randomUUID)))]
-    (if (and user (= (:password user) password))
-      (assoc (api-response :ok {:user (user-info user)})
-             :session/key sid
+(defn login [{:keys [datasource json-params] :as request}]
+  (let [{:keys [username password]} json-params
+        user (authenticate datasource username password)]
+    (if user
+      (assoc (api-response :ok {:user (safe-user-info user)})
+             :session/key (or (:session/key request)
+                              (str (java.util.UUID/randomUUID)))
              :session {:uid (:id user)})
       (api-response :failed))))
 
@@ -45,7 +51,6 @@
   (assoc (api-response :ok)
          :session nil))
 
-(defn whoami [request]
-  (let [{:keys [uid]} (:session request)]
-    (api-response :ok (get-user-info {:id uid}))))
+(defn whoami [{:keys [datasource] {:keys [uid]} :session}]
+  (api-response :ok (get-user-info datasource {:id uid})))
 

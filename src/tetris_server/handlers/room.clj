@@ -6,29 +6,30 @@
 (def CreateRoomRequest
   [:map
    [:public :boolean]
-   [:mode :string]])
+   [:game-settings [:map]]])
+
+(def JoinRoomRequest
+  [:map
+   [:room-id :string]])
 
 (def SearchRoomRequest [:map])
 
-(defn search-rooms [request]
-  (let [room-manager (get-in request [:services :room-manager])]
-    (api-response :ok (room-manager/get-rooms room-manager))))
+(defn search-rooms [{:keys [room-manager]}]
+  (api-response :ok (room-manager/get-rooms room-manager)))
 
-(defn create-room [request]
-  (let [room-manager (get-in request [:services :room-manager])
-        {:keys [uid]} (:session request)
-        req (:json-params request)
-        new-room {:host uid
-                  :public (:public req)
-                  :mode (keyword (:mode req))}
-        room (room-manager/add-room room-manager new-room)]
+(defn create-room [{:keys [room-manager]
+                    {:keys [public game-settings]} :json-params
+                    {:keys [uid]} :session}]
+  (let [create-room {:host uid
+                     :public public
+                     :game-settings game-settings}
+        room (room-manager/add-room room-manager create-room)]
     (api-response :ok {:room room})))
 
-(defn join-room [request]
-  (let [room-manager (get-in request [:services :room-manager])
-        {:keys [uid]} (:session request)
-        req (:json-params request)
-        room (room-manager/get-room room-manager (:room_id req))]
+(defn join-room [{:keys [room-manager]
+                  {:keys [room-id]} :json-params
+                  {:keys [uid]} :session}]
+  (let [room (room-manager/get-room room-manager room-id)]
     (cond
       (nil? room) (api-response :not-found)
       (= (:state room) :inprogress) (api-response :inprogress)
@@ -36,36 +37,31 @@
               (room-manager/join-room room-manager (:id room) uid)
               (api-response :ok {:room room})))))
 
-(defn leave-room [request]
-  (let [room-manager (get-in request [:services :room-manager])
-        {:keys [uid]} (:session request)
-        joined-room (room-manager/get-joined-room room-manager uid)]
+(defn leave-room [{:keys [room-manager]
+                   {:keys [uid]} :session}]
+  (let [room (room-manager/get-joined-room room-manager uid)]
     (cond
-      (nil? joined-room) (api-response :not-found)
+      (nil? room) (api-response :not-found)
       :else (do 
-              (room-manager/leave-room room-manager (:id joined-room) uid)
+              (room-manager/leave-room room-manager (:id room) uid)
               (api-response :ok)))))
 
-(defn toogle-ready [request]
-  (let [room-manager (get-in request [:services :room-manager])
-        {:keys [uid]} (:session request)
-        req (:json-params request)
-        room (room-manager/get-joined-room room-manager (:room_id req))]
+(defn toogle-ready [{:keys [room-manager]
+                     {:keys [uid]} :session}]
+  (let [room (room-manager/get-joined-room room-manager uid)]
     (cond
       (nil? room) (api-response :not-found)
       :else (do 
               (room-manager/toggle-ready room-manager room uid)
               (api-response :ok)))))
 
-(defn start-game [request]
-  (let [room-manager (get-in request [:services :room-manager])
-        {:keys [uid]} (:session request)
-        req (:json-params request)
-        room (room-manager/get-joined-room room-manager (:room_id req))]
+(defn start-game [{:keys [room-manager]
+                   {:keys [uid]} :session}]
+  (let [room (room-manager/get-joined-room room-manager uid)]
     (cond
       (nil? room) (api-response :not-found)
       (not= (:host room) uid) (api-response :failed)
       :else (do 
-              (room-manager/start-game room-manager room false)
+              (room-manager/start-game room-manager room force)
               (api-response :ok)))))
 

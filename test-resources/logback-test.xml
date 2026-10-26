@@ -13,5 +13,6 @@
     <logger name="org.eclipse.jetty" level="warn"/>
     <logger name="io.pedestal" level="warn"/>
     <logger name="io.pedestal.interceptor.chain.debug" level="debug"/>
+    <logger name="com.zaxxer.hikari" level="info" />
 
 </configuration>

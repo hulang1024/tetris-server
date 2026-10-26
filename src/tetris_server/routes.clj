@@ -57,8 +57,7 @@
    :route-name (or (:route-name opts)
                    (keyword (subs path 1)))])
 
-(defn routes
-  []
+(defn routes []
   (table/table-routes
     [(api-route :post "/register" user/register user/RegisterRequest {:auth-required? false})
      (api-route :post "/login" user/login user/LoginRequest {:auth-required? false})
@@ -67,7 +66,7 @@
 
      (api-route :post "/room/search-rooms" room/search-rooms room/SearchRoomRequest)
      (api-route :post "/room/create-room" room/create-room room/CreateRoomRequest)
-     (api-route :post "/room/join-room" room/join-room nil)
+     (api-route :post "/room/join-room" room/join-room room/JoinRoomRequest)
      (api-route :post "/room/leave-room" room/leave-room nil)
      (api-route :post "/room/toggle-ready" room/toogle-ready nil)
      (api-route :post "/room/start-game" room/start-game nil)]))

@@ -11,7 +11,9 @@
 
 (defn add-room [rm room]
   (swap! (:rooms rm) manage/add-room
-         (assoc room :id (str (java.util.UUID/randomUUID)))))
+         (assoc room
+                :id (str (java.util.UUID/randomUUID))
+                :created-at (System/currentTimeMillis))))
 
 (defn join-room [rm room-id uid]
   (swap! (:rooms rm) manage/join-room room-id uid))

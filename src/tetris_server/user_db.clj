@@ -1,19 +1,19 @@
 (ns tetris-server.user-db 
   (:require
-    [next.jdbc.sql :as sql]
-    [tetris-server.db :refer [ds]])
+    [next.jdbc.sql :as sql])
   (:import java.sql.Timestamp
            java.time.Instant))
 
-(defn find-users [m]
+(defn get-user [ds m]
+  (first (sql/find-by-keys ds :users m)))
+
+(defn find-users [ds m]
   (sql/find-by-keys ds :users m))
 
-(defn save-user! [user]
-  (sql/insert! ds :users {:username (:username user)
-                          :password (:password user)
-                          :user_type (:user-type user)}))
+(defn save-user! [ds user]
+  (sql/insert! ds :users user))
 
-(defn update-user! [user]
-  (sql/update! ds :users {:password (:password user)
-                          :updated_at (Timestamp/from (Instant/now))}
+(defn update-user! [ds user]
+  (sql/update! ds :users (assoc (select-keys user [:password])
+                                :updated-at (Timestamp/from (Instant/now)))
                {:id (:id user)}))
