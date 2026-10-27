@@ -48,9 +48,8 @@
       (api-response :failed))))
 
 (defn logout [_request]
-  (assoc (api-response :ok)
-         :session nil))
+  (assoc (api-response :ok) :session nil))
 
 (defn whoami [{:keys [datasource] {:keys [uid]} :session}]
-  (api-response :ok (get-user-info datasource {:id uid})))
+  (api-response :ok {:user (get-user-info datasource {:id uid})}))
 

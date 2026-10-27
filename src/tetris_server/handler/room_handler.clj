@@ -32,9 +32,8 @@
   (let [room (room-manager/get-room room-manager room-id)]
     (cond
       (nil? room) (api-response :not-found)
-      (= (:state room) :inprogress) (api-response :inprogress)
-      :else (do 
-              (room-manager/join-room room-manager (:id room) uid)
+      (= (:state room) :inprogress) (api-response :failed)
+      :else (let [room (room-manager/join-room room-manager (:id room) uid)]
               (api-response :ok {:room room})))))
 
 (defn leave-room [{:keys [room-manager]
@@ -42,18 +41,16 @@
   (let [room (room-manager/get-joined-room room-manager uid)]
     (cond
       (nil? room) (api-response :not-found)
-      :else (do 
-              (room-manager/leave-room room-manager (:id room) uid)
-              (api-response :ok)))))
+      :else (let [room (room-manager/leave-room room-manager (:id room) uid)]
+              (api-response :ok {:room room})))))
 
 (defn toogle-ready [{:keys [room-manager]
                      {:keys [uid]} :session}]
   (let [room (room-manager/get-joined-room room-manager uid)]
     (cond
       (nil? room) (api-response :not-found)
-      :else (do 
-              (room-manager/toggle-ready room-manager room uid)
-              (api-response :ok)))))
+      :else (let [room (room-manager/toggle-ready room-manager room uid)]
+              (api-response :ok {:room room})))))
 
 (defn start-game [{:keys [room-manager]
                    {:keys [uid]} :session}]
@@ -61,6 +58,5 @@
     (cond
       (nil? room) (api-response :not-found)
       (not= (:host room) uid) (api-response :failed)
-      :else (do 
-              (room-manager/start-game room-manager room force)
-              (api-response :ok)))))
+      :else (let [room (room-manager/start-game room-manager room force)]
+              (api-response :ok {:room room})))))

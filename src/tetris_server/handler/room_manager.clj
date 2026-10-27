@@ -22,30 +22,36 @@
 (defn add-room!
   {:malli/schema [:=> [:cat Rooms Room] Rooms]}
   [rm room]
-  (swap! (:rooms rm) add-room (assoc room
-                                     :id (str (java.util.UUID/randomUUID))
-                                     :created-at (System/currentTimeMillis))))
+  (swap! (:rooms rm) add-room
+         (assoc room
+                :id (str (java.util.UUID/randomUUID))
+                :created-at (System/currentTimeMillis))))
 
 (defn join-room [rm room-id uid]
   (when-let [room (get-room rm room-id)]
-    (swap! (:rooms rm) put-room (room/join room uid))))
+    (let [room (room/join room uid)]
+      (swap! (:rooms rm) put-room room)
+      room)))
 
 (defn leave-room [rm room-id uid]
   (when-let [room (get-room rm room-id)]
-    (let [left-room (room/leave room uid)]
+    (let [room (room/leave room uid)]
       (swap! (:rooms rm)
-             (fn [rooms]
-               (if (some? left-room)
-                 (put-room rooms left-room)
-                 (del-room rooms room)))))))
+             (if (seq (:players room)) put-room del-room)
+             room)
+      room)))
 
 (defn toggle-ready [rm room-id uid]
   (when-let [room (get-room rm room-id)]
-    (swap! (:rooms rm) put-room (room/toggle-ready room uid))))
+    (let [room (room/toggle-ready room uid)]
+      (swap! (:rooms rm) put-room room)
+      room)))
 
 (defn start-game [rm room-id force?]
   (when-let [room (get-room rm room-id)]
-    (swap! (:rooms rm) put-room (room/start-game room force?))))
+    (let [room (room/start-game room force?)]
+      (swap! (:rooms rm) put-room room)
+      room)))
 
 (defn get-joined-room [rm uid]
   (first (filter #(room/joined? % uid) (vals @(:rooms rm)))))

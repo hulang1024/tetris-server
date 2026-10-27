@@ -55,7 +55,7 @@
       (if (= uid (:host room))
         (change-host room (-> room :players first :id))
         room)
-      nil)))
+      room)))
 
 (defn toggle-ready [room uid]
   (update room :players

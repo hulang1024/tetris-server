@@ -45,10 +45,11 @@
                     (room/leave 1)))))
 
   (testing "玩家全部离开后空房间自动删除"
-    (is (nil? (-> one-room
-                  (room/join 2)
-                  (room/leave 1)
-                  (room/leave 2))))))
+    (is (match? {:players []}
+                (-> one-room
+                    (room/join 2)
+                    (room/leave 1)
+                    (room/leave 2))))))
 
 (deftest toggle-ready
   (testing "准备"

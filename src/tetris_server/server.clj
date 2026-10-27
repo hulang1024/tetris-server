@@ -62,3 +62,5 @@
          (hk/create-connector nil)
          connector/start!))))
 
+(defn stop [server]
+  (connector/stop! server))
