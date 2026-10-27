@@ -1,7 +1,8 @@
 (ns tetris-server.handler.user-handler
   (:require
+    [tetris-server.db.user :as user-db]
     [tetris-server.web.api :refer [api-response]]
-    [tetris-server.db.user :as user-db]))
+    [tetris-server.web.ws :as ws]))
 
 (def Username [:string {:min 3}])
 (def Password [:string {:min 6}])
@@ -47,7 +48,8 @@
              :session {:uid (:id user)})
       (api-response :failed))))
 
-(defn logout [_request]
+(defn logout [{{:keys [uid]} :session}]
+  (ws/close! uid)
   (assoc (api-response :ok) :session nil))
 
 (defn whoami [{:keys [datasource] {:keys [uid]} :session}]

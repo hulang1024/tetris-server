@@ -63,9 +63,9 @@
 
      (api-route :get "/ws" ws-interceptor nil)
 
-     (api-route :post "/room/search-rooms" room-handler/search-rooms room-handler/SearchRoomRequest)
+     (api-route :get "/room/search-rooms" room-handler/search-rooms room-handler/SearchRoomRequest)
      (api-route :post "/room/create-room" room-handler/create-room room-handler/CreateRoomRequest)
      (api-route :post "/room/join-room" room-handler/join-room room-handler/JoinRoomRequest)
      (api-route :post "/room/leave-room" room-handler/leave-room nil)
-     (api-route :post "/room/toggle-ready" room-handler/toogle-ready nil)
+     (api-route :post "/room/toggle-ready" room-handler/toggle-ready nil)
      (api-route :post "/room/start-game" room-handler/start-game nil)]))

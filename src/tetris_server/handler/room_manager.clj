@@ -5,8 +5,8 @@
 
 (defn put-room [rooms room] (assoc rooms (:id room) room))
 
-(defn del-room [rooms room-id]
-  (dissoc rooms room-id))
+(defn del-room [rooms room]
+  (dissoc rooms (:id room)))
 
 (defn new-room-manager [] {:rooms (atom {})})
 
@@ -16,24 +16,23 @@
 (defn get-room [rm room-id]
   (get @(:rooms rm) room-id))
 
-(defn add-room [rooms room]
-  (put-room rooms (room/make-room room)))
-
 (defn add-room!
   {:malli/schema [:=> [:cat Rooms Room] Rooms]}
   [rm room]
-  (swap! (:rooms rm) add-room
-         (assoc room
-                :id (str (java.util.UUID/randomUUID))
-                :created-at (System/currentTimeMillis))))
+  (let [room (room/make-room 
+               (assoc room
+                      :id (str (java.util.UUID/randomUUID))
+                      :created-at (System/currentTimeMillis)))]
+    (swap! (:rooms rm) put-room room)
+    room))
 
-(defn join-room [rm room-id uid]
+(defn join-room! [rm room-id uid]
   (when-let [room (get-room rm room-id)]
     (let [room (room/join room uid)]
       (swap! (:rooms rm) put-room room)
       room)))
 
-(defn leave-room [rm room-id uid]
+(defn leave-room! [rm room-id uid]
   (when-let [room (get-room rm room-id)]
     (let [room (room/leave room uid)]
       (swap! (:rooms rm)
@@ -41,13 +40,13 @@
              room)
       room)))
 
-(defn toggle-ready [rm room-id uid]
+(defn toggle-ready! [rm room-id uid]
   (when-let [room (get-room rm room-id)]
     (let [room (room/toggle-ready room uid)]
       (swap! (:rooms rm) put-room room)
       room)))
 
-(defn start-game [rm room-id force?]
+(defn start-game! [rm room-id force?]
   (when-let [room (get-room rm room-id)]
     (let [room (room/start-game room force?)]
       (swap! (:rooms rm) put-room room)

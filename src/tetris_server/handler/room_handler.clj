@@ -1,11 +1,15 @@
 (ns tetris-server.handler.room-handler 
   (:require
+    [tetris-server.handler.room :as room]
+    [tetris-server.handler.room-manager :as room-manager]
     [tetris-server.web.api :refer [api-response]]
-    [tetris-server.handler.room-manager :as room-manager]))
+    [tetris-server.web.ws :as ws]))
 
 (def CreateRoomRequest
   [:map
    [:public :boolean]
+   [:players-min :int]
+   [:players-max :int]
    [:game-settings [:map]]])
 
 (def JoinRoomRequest
@@ -18,12 +22,15 @@
   (api-response :ok (room-manager/get-rooms room-manager)))
 
 (defn create-room [{:keys [room-manager]
-                    {:keys [public game-settings]} :json-params
+                    {:keys [public players-min players-max game-settings]} :json-params
                     {:keys [uid]} :session}]
   (let [create-room {:host uid
                      :public public
+                     :players-min players-min
+                     :players-max players-max
                      :game-settings game-settings}
-        room (room-manager/add-room! room-manager create-room)]
+        room (or (room-manager/get-joined-room room-manager uid)
+                 (room-manager/add-room! room-manager create-room))]
     (api-response :ok {:room room})))
 
 (defn join-room [{:keys [room-manager]
@@ -33,24 +40,32 @@
     (cond
       (nil? room) (api-response :not-found)
       (= (:state room) :inprogress) (api-response :failed)
-      :else (let [room (room-manager/join-room room-manager (:id room) uid)]
-              (api-response :ok {:room room})))))
+      :else (let [room (room-manager/join-room! room-manager (:id room) uid)
+                  joined? (room/joined? room uid)]
+              (when joined?
+                (ws/broadcast-event! {:type :user-joined :room room}
+                                     (room/player-uids room)))
+              (api-response (if joined? :ok :failed))))))
 
 (defn leave-room [{:keys [room-manager]
                    {:keys [uid]} :session}]
   (let [room (room-manager/get-joined-room room-manager uid)]
     (cond
       (nil? room) (api-response :not-found)
-      :else (let [room (room-manager/leave-room room-manager (:id room) uid)]
-              (api-response :ok {:room room})))))
+      :else (let [room (room-manager/leave-room! room-manager (:id room) uid)]
+              (ws/broadcast-event! {:type :user-left :room room}
+                                   (room/player-uids room))
+              (api-response :ok)))))
 
-(defn toogle-ready [{:keys [room-manager]
+(defn toggle-ready [{:keys [room-manager]
                      {:keys [uid]} :session}]
   (let [room (room-manager/get-joined-room room-manager uid)]
     (cond
       (nil? room) (api-response :not-found)
-      :else (let [room (room-manager/toggle-ready room-manager room uid)]
-              (api-response :ok {:room room})))))
+      :else (let [room (room-manager/toggle-ready! room-manager (:id room) uid)]
+              (ws/broadcast-event! {:type :ready-toggled :room room}
+                                   (room/player-uids room))
+              (api-response :ok)))))
 
 (defn start-game [{:keys [room-manager]
                    {:keys [uid]} :session}]
@@ -58,5 +73,9 @@
     (cond
       (nil? room) (api-response :not-found)
       (not= (:host room) uid) (api-response :failed)
-      :else (let [room (room-manager/start-game room-manager room force)]
-              (api-response :ok {:room room})))))
+      :else (let [room (room-manager/start-game! room-manager (:id room) force)
+                  started? (= (:state room) :inprogress)]
+              (when started?
+                (ws/broadcast-event! {:type :game-started :room room}
+                                     (room/player-uids room)))
+              (api-response (if started? :ok :failed))))))

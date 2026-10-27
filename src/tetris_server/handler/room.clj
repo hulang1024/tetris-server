@@ -35,6 +35,9 @@
          :players [(make-player (:host room))]
          :state :ready))
 
+(defn player-uids [room]
+  (map :id (:players room)))
+
 (defn joined? [room uid]
   (some (comp #{uid} :id) (:players room)))
 
