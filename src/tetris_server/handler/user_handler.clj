@@ -1,7 +1,7 @@
-(ns tetris-server.handlers.user 
+(ns tetris-server.handler.user-handler
   (:require
-    [tetris-server.api :refer [api-response]]
-    [tetris-server.user-db :as user-db]))
+    [tetris-server.web.api :refer [api-response]]
+    [tetris-server.db.user :as user-db]))
 
 (def Username [:string {:min 3}])
 (def Password [:string {:min 6}])

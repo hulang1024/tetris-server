@@ -1,4 +1,4 @@
-(ns tetris-server.api
+(ns tetris-server.web.api
   (:require [cheshire.core :as json]))
 
 (defn api-response

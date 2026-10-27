@@ -1,4 +1,4 @@
-(ns tetris-server.main
+(ns tetris-server.server
   (:require [camel-snake-kebab.core :as csk]
             [io.pedestal.connector :as connector]
             [io.pedestal.connector.dev :as dev]
@@ -13,9 +13,9 @@
             [io.pedestal.log :as log]
             [io.pedestal.service.interceptors :as interceptors]
             [tetris-server.config :as config]
-            [tetris-server.db :as db]
-            [tetris-server.room-manage-service :as room-manager]
-            [tetris-server.routes :as routes]))
+            [tetris-server.db.common :as db]
+            [tetris-server.handler.room-manager :as room-manager]
+            [tetris-server.web.routes :as routes]))
 
 (defn create-inject-deps-interceptor [deps]
   (interceptor
@@ -28,8 +28,8 @@
             :port (:port connector-map))
   connector-map)
 
-(defn start-server
-  ([] (start-server false))
+(defn start
+  ([] (start false))
   ([test-mode?]
    (let [config (config/load-config (if test-mode? :test :default))
          pool (db/create-pool (:db config))

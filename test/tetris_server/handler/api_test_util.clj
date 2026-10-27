@@ -1,4 +1,4 @@
-(ns tetris-server.handlers.api-test-util 
+(ns tetris-server.handler.api-test-util 
   (:require
     [cheshire.core :as json]
     [clj-http.client :as http]))

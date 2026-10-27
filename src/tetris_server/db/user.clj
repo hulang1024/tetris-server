@@ -1,4 +1,4 @@
-(ns tetris-server.user-db 
+(ns tetris-server.db.user
   (:require
     [next.jdbc.sql :as sql])
   (:import java.sql.Timestamp

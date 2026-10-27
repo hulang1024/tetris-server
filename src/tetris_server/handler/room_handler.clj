@@ -1,7 +1,7 @@
-(ns tetris-server.handlers.room 
+(ns tetris-server.handler.room-handler 
   (:require
-    [tetris-server.api :refer [api-response]]
-    [tetris-server.room-manage-service :as room-manager]))
+    [tetris-server.web.api :refer [api-response]]
+    [tetris-server.handler.room-manager :as room-manager]))
 
 (def CreateRoomRequest
   [:map
@@ -23,7 +23,7 @@
   (let [create-room {:host uid
                      :public public
                      :game-settings game-settings}
-        room (room-manager/add-room room-manager create-room)]
+        room (room-manager/add-room! room-manager create-room)]
     (api-response :ok {:room room})))
 
 (defn join-room [{:keys [room-manager]
@@ -64,4 +64,3 @@
       :else (do 
               (room-manager/start-game room-manager room force)
               (api-response :ok)))))
-

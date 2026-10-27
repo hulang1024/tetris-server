@@ -1,17 +1,17 @@
-(ns tetris-server.handlers.user-test 
+(ns tetris-server.handler.user-api-test 
   (:require
     [clojure.test :refer [deftest is testing use-fixtures]]
     [matcher-combinators.test]
-    [tetris-server.handlers.api-test-util :refer [post]]
+    [tetris-server.handler.api-test-util :refer [post]]
     [io.pedestal.connector :as connector]
-    [tetris-server.main :as main]))
+    [tetris-server.server :as server]))
 
 (defonce test-server (atom nil))
 
 (def base-url "http://localhost:8080/api")
 
 (defn- start-test-server []
-  (reset! test-server (main/start-server true)))
+  (reset! test-server (server/start true)))
 
 (defn- stop-test-server []
   (when-let [server @test-server]

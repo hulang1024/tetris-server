@@ -1,13 +1,13 @@
-(ns tetris-server.routes
+(ns tetris-server.web.routes
   (:require [io.pedestal.http.ring-middlewares :as middlewares]
             [io.pedestal.http.route.definition.table :as table]
             [io.pedestal.interceptor :refer [interceptor]]
             [malli.core :as m]
             [malli.error :as me]
             [ring.middleware.session.memory :as memory]
-            [tetris-server.api :refer [api-response]]
-            [tetris-server.handlers.room :as room]
-            [tetris-server.handlers.user :as user]))
+            [tetris-server.web.api :refer [api-response]]
+            [tetris-server.handler.room-handler :as room-handler]
+            [tetris-server.handler.user-handler :as user-handler]))
 
 (defonce session-store (memory/memory-store))
 
@@ -59,14 +59,14 @@
 
 (defn routes []
   (table/table-routes
-    [(api-route :post "/register" user/register user/RegisterRequest {:auth-required? false})
-     (api-route :post "/login" user/login user/LoginRequest {:auth-required? false})
-     (api-route :post "/logout" user/logout nil)
-     (api-route :get "/whoami" user/whoami nil)
+    [(api-route :post "/register" user-handler/register user-handler/RegisterRequest {:auth-required? false})
+     (api-route :post "/login" user-handler/login user-handler/LoginRequest {:auth-required? false})
+     (api-route :post "/logout" user-handler/logout nil)
+     (api-route :get "/whoami" user-handler/whoami nil)
 
-     (api-route :post "/room/search-rooms" room/search-rooms room/SearchRoomRequest)
-     (api-route :post "/room/create-room" room/create-room room/CreateRoomRequest)
-     (api-route :post "/room/join-room" room/join-room room/JoinRoomRequest)
-     (api-route :post "/room/leave-room" room/leave-room nil)
-     (api-route :post "/room/toggle-ready" room/toogle-ready nil)
-     (api-route :post "/room/start-game" room/start-game nil)]))
+     (api-route :post "/room/search-rooms" room-handler/search-rooms room-handler/SearchRoomRequest)
+     (api-route :post "/room/create-room" room-handler/create-room room-handler/CreateRoomRequest)
+     (api-route :post "/room/join-room" room-handler/join-room room-handler/JoinRoomRequest)
+     (api-route :post "/room/leave-room" room-handler/leave-room nil)
+     (api-route :post "/room/toggle-ready" room-handler/toogle-ready nil)
+     (api-route :post "/room/start-game" room-handler/start-game nil)]))
