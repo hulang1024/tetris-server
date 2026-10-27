@@ -12,4 +12,4 @@
 (mi/collect!)
 (mi/instrument!)
 
-(server/start true)
+(defonce _server (server/start true))

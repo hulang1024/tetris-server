@@ -4,12 +4,10 @@
             [io.pedestal.interceptor :refer [interceptor]]
             [malli.core :as m]
             [malli.error :as me]
-            [ring.middleware.session.memory :as memory]
-            [tetris-server.web.api :refer [api-response]]
             [tetris-server.handler.room-handler :as room-handler]
-            [tetris-server.handler.user-handler :as user-handler]))
-
-(defonce session-store (memory/memory-store))
+            [tetris-server.handler.user-handler :as user-handler]
+            [tetris-server.web.api :refer [api-response]]
+            [tetris-server.web.ws :refer [ws-interceptor]]))
 
 (defn validation-params [schema]
   (interceptor
@@ -22,7 +20,7 @@
                          (api-response :error {:errors (me/humanize err)}))
                   ctx)))}))
 
-(def auth
+(def auth-interceptor
   (interceptor
     {:name ::auth
      :enter (fn [ctx]
@@ -31,7 +29,7 @@
                   ctx
                   (assoc ctx :response {:status 401}))))}))
 
-(def extract-session-id
+(def extract-session-id-interceptor
   (interceptor
     {:name :extract-session-id 
      :enter (fn [ctx]
@@ -43,15 +41,14 @@
                       (assoc-in [:request :session/key] sid))
                   ctx)))}))
 
-(defonce session-interceptor
-  (middlewares/session {:store session-store}))
+(defonce session-interceptor (middlewares/session))
 
 (defn api-route [verb path handler params-schema & [opts]]
   [(str "/api" path)
    verb (cond-> []
-          true (into [extract-session-id session-interceptor])
+          true (into [extract-session-id-interceptor session-interceptor])
           (not= (:auth-required? opts) false)
-          (conj auth)
+          (conj auth-interceptor)
           (some? params-schema) (conj (validation-params params-schema))
           true (conj handler))
    :route-name (or (:route-name opts)
@@ -63,6 +60,8 @@
      (api-route :post "/login" user-handler/login user-handler/LoginRequest {:auth-required? false})
      (api-route :post "/logout" user-handler/logout nil)
      (api-route :get "/whoami" user-handler/whoami nil)
+
+     (api-route :get "/ws" ws-interceptor nil)
 
      (api-route :post "/room/search-rooms" room-handler/search-rooms room-handler/SearchRoomRequest)
      (api-route :post "/room/create-room" room-handler/create-room room-handler/CreateRoomRequest)
