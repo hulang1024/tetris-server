@@ -17,7 +17,7 @@
             [tetris-server.handler.room-manager :as room-manager]
             [tetris-server.web.routes :as routes]))
 
-(defn create-inject-deps-interceptor [deps]
+(defn inject-handler-deps-interceptor [deps]
   (interceptor
     {:name :inject-deps
      :enter (fn [ctx]
@@ -34,11 +34,11 @@
    (let [config (config/load-config (if test-mode? :test :default))
          pool (db/create-pool (:db config))
          room-manager (room-manager/new-room-manager)
-         deps {:room-manager room-manager
-               :datasource (db/create-datasource pool)}]
+         handler-deps {:room-manager room-manager
+                       :datasource (db/create-datasource pool)}]
      (.addShutdownHook (Runtime/getRuntime)
                        (Thread. (fn []
-                                  (println "Shutting down...")
+                                  (log/info :msg "Shutting down...")
                                   (.close pool))))
      (-> (connector/default-connector-map (-> config :server :port))
          (assoc :host "0.0.0.0"
@@ -56,7 +56,7 @@
               (body-params/default-parser-map
                 :json-options {:key-fn csk/->kebab-case-keyword}))
             (secure-headers/secure-headers)])
-         (connector/with-interceptor (create-inject-deps-interceptor deps))
+         (connector/with-interceptor (inject-handler-deps-interceptor handler-deps))
          (connector/with-routes (routes/routes))
          log-startup
          (hk/create-connector nil)

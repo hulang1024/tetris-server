@@ -11,7 +11,7 @@
 (defn new-room-manager [] {:rooms (atom {})})
 
 (defn get-rooms [rm]
-  (vals @(:rooms rm)))
+  (vec (vals @(:rooms rm))))
 
 (defn get-room [rm room-id]
   (get @(:rooms rm) room-id))
@@ -46,9 +46,15 @@
       (swap! (:rooms rm) put-room room)
       room)))
 
-(defn start-game! [rm room-id force?]
+(defn enter-game! [rm room-id force?]
   (when-let [room (get-room rm room-id)]
-    (let [room (room/start-game room force?)]
+    (let [room (room/enter-game room force?)]
+      (swap! (:rooms rm) put-room room)
+      room)))
+
+(defn request-start-game! [rm room-id uid]
+  (when-let [room (get-room rm room-id)]
+    (let [room (room/request-start-game room uid)]
       (swap! (:rooms rm) put-room room)
       room)))
 

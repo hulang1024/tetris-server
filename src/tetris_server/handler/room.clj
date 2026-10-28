@@ -4,7 +4,7 @@
 (def Player
   [:map
    [:id :int]
-   [:readied :boolean]])
+   [:state [:enum :not-ready :readied :play-requested]]])
 
 (def RoomId :string)
 
@@ -26,7 +26,7 @@
                    :players-max
                    :game-settings]))
 
-(defn- make-player [uid] {:id uid :readied false})
+(defn- make-player [uid] {:id uid :state :not-ready})
 
 (defn make-room
   {:malli/schema [:=> [:cat CreateRoom] Room]}
@@ -36,7 +36,19 @@
          :state :ready))
 
 (defn player-uids [room]
-  (map :id (:players room)))
+  (vec (map :id (:players room))))
+
+(defn update-player [room uid update-fn]
+  (update room :players
+          (fn [players]
+            (mapv (fn [player]
+                    (if (= (:id player) uid)
+                      (update-fn player)
+                      player))
+                  players))))
+
+(defn every-players? [room pred-state]
+  (every? #(= (:state %) pred-state) (:players room)))
 
 (defn joined? [room uid]
   (some (comp #{uid} :id) (:players room)))
@@ -61,14 +73,15 @@
       room)))
 
 (defn toggle-ready [room uid]
-  (update room :players
-          (fn [players]
-            (mapv #(if (= (:id %) uid) (update % :readied not) %)
-                  players))))
+  (update-player room uid
+                 #(assoc % :state
+                         (if (= (:state %) :not-ready) :readied :not-ready))))
 
-(defn start-game [room force?]
+(defn enter-game [room force?]
   (if (and (>= (count (:players room)) (:players-min room))
-           (or force? (every? :readied (:players room))))
+           (or force? (every-players? room :readied)))
     (assoc room :state :inprogress)
     room))
 
+(defn request-start-game [room uid]
+  (update-player room uid #(assoc % :state :play-requested)))

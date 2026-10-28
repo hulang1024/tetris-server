@@ -1,4 +1,4 @@
-(ns tetris-server.handler.api-test-util 
+(ns tetris-server.api-test-util 
   (:require
     [cheshire.core :as json]
     [clj-http.client :as http]
@@ -21,15 +21,17 @@
                   (start-test-server)
                   (try (f) (finally (stop-test-server))))))
 
-(defn request [method-fn url opts]
-  (let [resp (method-fn (str "http://localhost:8080/api" url)
+(defn request [verb path opts]
+  (println (str (.toUpperCase (name verb)) " " path))
+  (let [resp ((get {:post http/post :get http/get} verb)
+              (str "http://localhost:8080/api" path)
                         (merge {:content-type :json
                                 :throw-exceptions false}
                                opts))]
-    (assoc resp :body (json/parse-string (:body resp)))))
+    (assoc resp :body (json/parse-string (:body resp) true))))
 
 (defn post [url body & [opts]]
-  (request http/post url (merge {:body (json/generate-string body)} opts)))
+  (request :post url (merge {:body (json/generate-string body)} opts)))
 
 (defn get [url query-params & [opts]]
-  (request http/get url (merge {:query-params query-params} opts)))
+  (request :get url (merge {:query-params query-params} opts)))

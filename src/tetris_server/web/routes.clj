@@ -13,8 +13,9 @@
   (interceptor
     {:name ::validate-params
      :enter (fn [ctx]
-              (let [body (get-in ctx [:request :json-params])
-                    err  (m/explain schema body)]
+              (let [params (merge (get-in ctx [:request :json-params])
+                                  (get-in ctx [:request :query-params]))
+                    err  (and (seq params) (m/explain schema params))]
                 (if err
                   (assoc ctx :response
                          (api-response :error {:errors (me/humanize err)}))
@@ -68,4 +69,5 @@
      (api-route :post "/room/join-room" room-handler/join-room room-handler/JoinRoomRequest)
      (api-route :post "/room/leave-room" room-handler/leave-room nil)
      (api-route :post "/room/toggle-ready" room-handler/toggle-ready nil)
-     (api-route :post "/room/start-game" room-handler/start-game nil)]))
+     (api-route :post "/room/enter-game" room-handler/enter-game nil)
+     (api-route :post "/room/request-start-game" room-handler/request-start-game nil)]))

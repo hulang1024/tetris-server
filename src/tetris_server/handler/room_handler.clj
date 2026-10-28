@@ -43,8 +43,7 @@
       :else (let [room (room-manager/join-room! room-manager (:id room) uid)
                   joined? (room/joined? room uid)]
               (when joined?
-                (ws/broadcast-event! {:type :user-joined :room room}
-                                     (room/player-uids room)))
+                (ws/broadcast-event! (room/player-uids room) :user-joined {:room room}))
               (api-response (if joined? :ok :failed))))))
 
 (defn leave-room [{:keys [room-manager]
@@ -53,8 +52,7 @@
     (cond
       (nil? room) (api-response :not-found)
       :else (let [room (room-manager/leave-room! room-manager (:id room) uid)]
-              (ws/broadcast-event! {:type :user-left :room room}
-                                   (room/player-uids room))
+              (ws/broadcast-event! (room/player-uids room) :user-left {:room room})
               (api-response :ok)))))
 
 (defn toggle-ready [{:keys [room-manager]
@@ -63,19 +61,29 @@
     (cond
       (nil? room) (api-response :not-found)
       :else (let [room (room-manager/toggle-ready! room-manager (:id room) uid)]
-              (ws/broadcast-event! {:type :ready-toggled :room room}
-                                   (room/player-uids room))
+              (ws/broadcast-event! (room/player-uids room) :ready-toggled {:room room})
               (api-response :ok)))))
 
-(defn start-game [{:keys [room-manager]
+(defn enter-game [{:keys [room-manager]
                    {:keys [uid]} :session}]
   (let [room (room-manager/get-joined-room room-manager uid)]
     (cond
       (nil? room) (api-response :not-found)
       (not= (:host room) uid) (api-response :failed)
-      :else (let [room (room-manager/start-game! room-manager (:id room) force)
+      (not= (:state room) :ready) (api-response :failed)
+      :else (let [room (room-manager/enter-game! room-manager (:id room) false)
                   started? (= (:state room) :inprogress)]
               (when started?
-                (ws/broadcast-event! {:type :game-started :room room}
-                                     (room/player-uids room)))
+                (ws/broadcast-event! (room/player-uids room) :game-entered {:room room}))
               (api-response (if started? :ok :failed))))))
+
+(defn request-start-game [{:keys [room-manager]
+                           {:keys [uid]} :session}]
+  (let [room (room-manager/get-joined-room room-manager uid)]
+    (cond
+      (nil? room) (api-response :not-found)
+      (not= (:state room) :inprogress) (api-response :failed)
+      :else (let [room (room-manager/request-start-game! room-manager (:id room) uid)]
+              (when (room/every-players? room :play-requested)
+                (ws/broadcast-event! (room/player-uids room) :game-started {:room room}))
+              (api-response :ok)))))
